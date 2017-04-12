@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html>
+	<head>
+	<meta charset="UTF-8">
+	<title>Registro de trabajos</title>
+	<link rel="stylesheet" title="pink" type="text/css" href="css/estilo.css">
+	<script type="text/javascript" src="js/Trabajo.js"></script>
+	<script type="text/javascript" src="js/Storage.js"></script>
+	</head>
+	<body>
+	<div id="formularioDiv" style="display: block;vertical-align:top;">
+	<form method="POST" name="formulario" id="formulario" action="javascript:doSubmit();">
+	  <table id="tabla_formulario" border=0 cellpadding=3 cellspacing=4 >
+		   <tr>
+			<td colspan="2" class="titulo">Perfil</td>
+		   </tr>
+		   <tr>
+			<td class="etiqueta">Codigo</td>
+		   </tr>
+		   <tr>
+			<td>
+				<input type="text" name="codigo" id="codigo">
+			</td>
+		   </tr>
+		   <tr>
+			<td class="etiqueta">Descripcion</td>
+		   </tr>
+		   <tr>
+			<td>
+				<input type="text" name="descripcion" id="descripcion" >
+			</td>
+		   </tr>
+		   <tr>
+			<td class="etiqueta">Prioridad</td>
+		   </tr>
+		   <tr>
+			<td>
+				<select name="prioridad" id="prioridad">
+					<option value="Baja">Baja</option>
+					<option value="Media">Media</option>
+					<option value="Alta">Alta</option>
+					<option value="Urgente">Urgente</option>
+			</td>
+		   </tr>
+		   <tr><td class="titulo" colspan="2"><input class="boton" type="submit" value="Registrar"></td></tr>
+		</table>
+		</form>
+	</div>
+<hr>
+	<div id="listadoDiv" style="display: block; vertical-align:top;">
+		<table class="grid" id="tabla">
+			<thead>
+				<tr>
+					<th>Codigo</th>
+					<th>Descripcion</th>
+					<th>Prioridad</th>
+					<th>...</th>
+					<th>...</th>
+				</tr>
+			</thead>
+			<tbody name="tbody" id="listado"></tbody>
+		</table>
+	</div>
+	</body>
+	<script language="javascript">
+	var trabajos;
+	var trabajo;
+	
+	function pageLoad(event){
+    var codigo=document.getElementById("codigo");
+    var descripcion=document.getElementById("descripcion");
+
+	codigo.addEventListener("focus",doFocus);
+    codigo.addEventListener("blur",doBlur);
+	descripcion.addEventListener("focus",doFocus);
+    descripcion.addEventListener("blur",doBlur);
+	
+    var formulario=document.getElementById("formulario");
+    formulario.addEventListener("submit",doValidate);
+	trabajos = Storage.retrieve("trabajos");
+    if (trabajos == null){
+		trabajos=[];
+		Storage.store("trabajos",trabajos);
+	}
+	listTrabajos(trabajos);
+  }
+  
+	function doFocus(event){
+    event.target.classList.add("focus");
+  }
+  
+  function doBlur(event){
+    event.target.classList.remove("focus");
+  }
+  
+  function doValidate(event){
+	 var codigo=document.getElementById("codigo");
+	 var descripcion=document.getElementById("descripcion");
+	 var error=false;
+	 
+	 codigo.classList.remove("invalid");
+	if (codigo.value.length==0){
+		codigo.classList.add("invalid");
+		error=true;
+	}
+	
+	descripcion.classList.remove("invalid");
+	if (descripcion.value.length==0){
+		descripcion.classList.add("invalid");
+		error=true;
+	}
+	
+	if (error){event.preventDefault();}
+  }
+  
+  function doSubmit(){
+  
+ 
+	 var codigo=document.getElementById("codigo");
+	 var descripcion=document.getElementById("descripcion");
+	 var select=document.getElementById("prioridad");
+	 var prioridad = select.options[select.selectedIndex].text;
+	 var trabajo;
+	
+	trabajo = new Trabajo(codigo.value,descripcion.value,prioridad); 
+	
+	if(verifyCode(trabajo)){ 
+	trabajos.push(trabajo);
+	Storage.store("trabajos",trabajos);
+	
+	var listado=document.getElementById("listado");
+	listTrabajo(listado,trabajo);
+	
+	alert("Datos registrados correctamente");
+    var formulario=document.getElementById("formulario");
+    formulario.reset();
+	}
+	else{
+	window.alert("El codigo ya está siendo utilizado... Verifique su codigo...");
+	}
+  }
+	
+   function listTrabajos(trab){
+	var listado=document.getElementById("listado");
+	listado.innerHTML="";
+	for (i=0;i<trab.length;i++){
+	  listTrabajo(listado,trab[i]);
+	}
+  }
+  
+  function listTrabajo(listado,trab){
+	var tr =document.createElement("tr");
+	var td;
+	
+	td=document.createElement("td");
+	td.appendChild(document.createTextNode(trab.codigo));
+	tr.appendChild(td);
+	
+	td =document.createElement("td");
+	td.appendChild(document.createTextNode(trab.descripcion));
+	tr.appendChild(td);
+	
+	td =document.createElement("td");
+	td.appendChild(document.createTextNode(trab.prioridad));
+	switch(trab.prioridad)
+	{
+	case "Baja":{
+	tr.classList.add("Baja");
+	break;}
+	case "Media":{
+	tr.classList.add("Media");
+	break;}
+	case "Alta":{
+	tr.classList.add("Alta");
+	break;}
+	case "Urgente":{
+	tr.classList.add("Urgente");
+	break;}
+	default: {
+	console.log("Error...");
+	break;}
+	
+	}
+	tr.appendChild(td);
+	
+	td=document.createElement("td");
+	var img = document.createElement("img");
+	img.src="images/trianguloArriba.png";
+	img.title="Subir Prioridad";
+	img.addEventListener("click",doUp);
+	td.appendChild(img);
+    tr.appendChild(td);
+	
+	td=document.createElement("td");
+	var img = document.createElement("img");
+	img.src="images/trianguloAbajo.png";
+	img.title="Bajar Prioridad";
+	img.addEventListener("click",doDown);
+	td.appendChild(img);
+    tr.appendChild(td);
+	listado.appendChild(tr);
+  }
+  
+  function doUp(event){// evento
+  	var id = event.target.parentElement.parentElement.cells[0].innerHTML;
+  	var trab;
+  	var index = trabajos.findIndex(function(x){return x.codigo==id; });
+  	trab = trabajos [index];
+  	
+	var index = trabajos.findIndex(function(x){return x.codigo==trab.codigo; });
+	  if (trab.prioridad == "Baja"){
+	   trab.prioridad = "Media";
+		listTrabajos(trabajos);
+	}
+	else
+	if (trab.prioridad == "Media"){
+		trab.prioridad = "Alta";
+		listTrabajos(trabajos);
+	}
+	else
+	if (trab.prioridad == "Alta"){
+		trab.prioridad = "Urgente";
+		listTrabajos(trabajos);
+	}
+   Storage.store("trabajos",trabajos);
+  }
+	
+  function doDown(event){
+	var id = event.target.parentElement.parentElement.cells[0].innerHTML;
+  	var trab;
+  	var index = trabajos.findIndex(function(x){return x.codigo==id; });
+  	trab = trabajos [index];
+  	
+	var index = trabajos.findIndex(function(x){return x.codigo==trab.codigo; });
+	  if (trab.prioridad == "Urgente"){
+	   trab.prioridad = "Alta";
+		listTrabajos(trabajos);
+	}
+	else
+	if (trab.prioridad == "Alta"){
+		trab.prioridad = "Media";
+		listTrabajos(trabajos);
+	}
+	else
+	if (trab.prioridad == "Media"){
+		trab.prioridad = "Baja";
+		listTrabajos(trabajos);
+	}
+   Storage.store("trabajos",trabajos);
+  }
+  
+  function verifyCode (trabajo){
+	
+	for (var i = 0; i < trabajos.length; i++)
+	{
+		if (trabajos[i].codigo === trabajo.codigo)
+			return false;
+	}
+	return true;;
+}
+
+	document.addEventListener("DOMContentLoaded",pageLoad);
+	</script>
+</html>
