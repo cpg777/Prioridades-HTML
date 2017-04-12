@@ -1,0 +1,43 @@
+body {
+	background-color:white;
+}
+
+#tabla_formulario{
+	border:1px solid black;
+}
+
+.etiqueta{
+	color: black;
+}
+
+.titulo {
+	text-align: center;
+	background-color: #13A99C;
+	color:white;
+}
+
+.grid th{
+	text-align: center;
+	background-color: #13A99C;
+	color:white;
+	border: 1px solid black;
+}
+
+input[type="text"].focus {background-color: #A2F5E0;}
+input[type="text"].nofocus {background-color:white;}
+
+input.invalid {box-shadow: 0 0 5px 1px red;}
+
+tr.Baja {
+	background-color: green;
+}
+tr.Media {
+	background-color: blue;
+}
+tr.Alta {
+	background-color: yellow;
+}
+tr.Urgente {
+	background-color: red;
+}
+
